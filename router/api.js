@@ -1,19 +1,27 @@
 const express = require("express");
 const Router = express.Router();
 const User = require("../model/User");
+const Sing = require("../model/Sing");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = "adfiaoenncjnasjdif23348u%%^$ufnnjsbbshdfknc";
 
+async function getNickname(id) {
+  const user = await User.findOne({ _id: id }).lean();
+  if (!user) {
+    return "error";
+  } else {
+    return user.nickname;
+  }
+}
+
 //check isLoggedIn
 Router.post("/checkIsLoggedIn", async (req, res) => {
-  const { token } = req.body;
-  console.log("the token is", token);
+  const { token } = await req.body;
   try {
     const user = jwt.verify(token, JWT_SECRET);
     res.send({ status: "success", user });
-    console.log(user);
   } catch (error) {
     res.send({ status: "error", error });
   }
@@ -23,7 +31,7 @@ Router.post("/checkIsLoggedIn", async (req, res) => {
 Router.post("/login", async (req, res) => {
   const {
     body: { username, password },
-  } = req;
+  } = await req;
   const user = await User.findOne({ username }).lean();
 
   if (!user) {
@@ -43,8 +51,8 @@ Router.post("/login", async (req, res) => {
 
 //kakao login api
 Router.post("/kakaoLogin", async (req, res) => {
-  const kakaoUserId = req.body.profile.id;
-  const kakaoUserNickname = req.body.profile.properties.nickname;
+  const kakaoUserId = await req.body.profile.id;
+  const kakaoUserNickname = await req.body.profile.properties.nickname;
 
   const user = await User.findOne({ username: kakaoUserId }).lean();
   if (!user) {
@@ -78,7 +86,7 @@ Router.post("/kakaoLogin", async (req, res) => {
 Router.post("/register", async (req, res) => {
   const {
     body: { username, password, nickname },
-  } = req;
+  } = await req;
   const hashedPassword = await bcrypt.hash(password, 10);
 
   if (typeof username !== "string") {
@@ -117,6 +125,57 @@ Router.post("/register", async (req, res) => {
     }
   }
   res.send({ status: "success", username, password, nickname });
+});
+
+//sing post api
+Router.post("/singpost", async (req, res) => {
+  const {
+    body: { title, description, url, creatorId, createdAt },
+  } = await req;
+  const nickname = await getNickname(creatorId);
+  try {
+    const response = await Sing.create({
+      title,
+      description,
+      url,
+      creatorId,
+      createdAt,
+      creatorNickname: nickname,
+      likes: 0,
+      comments: [],
+    });
+    console.log("successful with", response);
+    return res.json({ status: "success", data: response });
+  } catch (error) {
+    return res.json({ status: "error", error: error });
+  }
+});
+
+//get sings api
+Router.post("/getsings", async (req, res) => {
+  const sings = await Sing.find({});
+  return res.json({ status: "success", sings });
+});
+
+Router.get("/singview", async (req, res) => {
+  try {
+    const skip =
+      req.query.skip && /^\d+$/.test(req.query.skip)
+        ? Number(req.query.skip)
+        : 0;
+    const sings = await Sing.find({}, undefined, { skip, limit: 9 });
+    return res.json(sings);
+  } catch (e) {
+    console.log(e);
+  }
+});
+
+Router.post("/getsingbyid/:id", async (req, res) => {
+  const {
+    params: { id },
+  } = req;
+  const sing = await Sing.find({ _id: id });
+  return res.json({ status: "success", sing });
 });
 
 module.exports = Router;

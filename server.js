@@ -26,6 +26,7 @@ app.use(
   })
 );
 app.use("/api", api);
+//서버 사이드 렌더링
 
 app.listen(3001, () => {
   console.log("Server is running on 3001");
