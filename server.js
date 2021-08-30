@@ -28,9 +28,7 @@ app.use(
 );
 app.use("/api", api);
 //서버 사이드 렌더링
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "/build", "index.html"));
-});
+app.use("/", express.static(__dirname + "/build"));
 
 app.listen(3001, () => {
   console.log("Server is running on 3001");
