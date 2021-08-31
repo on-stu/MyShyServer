@@ -154,7 +154,7 @@ Router.post("/singpost", async (req, res) => {
 
 //get sings api
 Router.post("/getsings", async (req, res) => {
-  const sings = await Sing.find({});
+  const sings = await Sing.find({}, undefined, { limit: 6 });
   return res.json({ status: "success", sings });
 });
 
@@ -177,6 +177,23 @@ Router.post("/getsingbyid/:id", async (req, res) => {
   } = req;
   const sing = await Sing.find({ _id: id });
   return res.json({ status: "success", sing });
+});
+
+Router.post("/postcomment", async (req, res) => {
+  const {
+    body: { singId },
+  } = req;
+  try {
+    const response = await Sing.updateOne(
+      { _id: singId },
+      {
+        $push: { comments: [req.body] },
+      }
+    );
+    return res.json({ status: "success", data: response });
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 module.exports = Router;
