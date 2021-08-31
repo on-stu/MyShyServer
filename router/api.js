@@ -21,7 +21,8 @@ Router.post("/checkIsLoggedIn", async (req, res) => {
   const { token } = await req.body;
   try {
     const user = jwt.verify(token, JWT_SECRET);
-    res.send({ status: "success", user });
+    const userObj = await User.findOne({ _id: user.id }).lean();
+    res.send({ status: "success", user: userObj });
   } catch (error) {
     res.send({ status: "error", error });
   }
