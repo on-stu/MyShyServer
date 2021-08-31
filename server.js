@@ -9,7 +9,8 @@ const path = require("path");
 const PORT = process.env.PORT || 3001;
 
 mongoose.connect(
-  "mongodb+srv://admin:ehdgoanf1!@youtubeclone.dbev2.mongodb.net/MyShyDB?retryWrites=true&w=majority",
+  process.env.MONGODB_URI ||
+    "mongodb+srv://admin:ehdgoanf1!@youtubeclone.dbev2.mongodb.net/MyShyDB?retryWrites=true&w=majority",
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
