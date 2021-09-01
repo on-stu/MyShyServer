@@ -34,11 +34,7 @@ app.use(function (req, res, next) {
   );
   next();
 });
-app.use(
-  cors({
-    origin: "*",
-  })
-);
+app.use(cors());
 app.use("/api", api);
 //서버 사이드 렌더링
 app.use("/", express.static(__dirname + "/build"));
